@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>拍摄正式检查（主扫描）语音指南</title>
+<title>撮影本番（Main Scan）音声ガイド</title>
 <style>
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Segoe UI",sans-serif;
 background:linear-gradient(180deg,#f7fbff,#eef6ff);color:#0f172a;}
@@ -24,13 +24,29 @@ button:active{transform:scale(.98);}
 audio{width:100%;margin-top:10px;}
 .status{margin-top:8px;font-size:13px;color:#475569;}
 .hint{margin-top:10px;font-size:12px;color:#64748b;}
+
+/* === Emergency Button (Main Scan only) === */
+.fab-emg{position:fixed;right:16px;bottom:16px;z-index:10000;
+background:#fff1f2;border:1px solid #fecaca;color:#9f1239;
+border-radius:999px;padding:12px 14px;font-weight:800}
+.emg-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.4);
+z-index:9998;display:none}
+.emg-sheet{position:fixed;left:0;right:0;bottom:0;z-index:9999;
+display:none;padding:12px}
+.emg-panel{max-width:720px;margin:0 auto;background:#fff;
+border-radius:18px;padding:14px}
+.emg-item{border:1px solid #e2e8f0;border-radius:14px;
+padding:10px;margin-bottom:8px}
+.emg-jp{font-weight:700;font-size:16px}
+.emg-en{font-size:13px;color:#475569}
+
 </style>
 </head>
-<body>
+<body data-page="main-scan">
 <div class="header">
   <div class="frame-title">
-    <h1>撮影本番（主扫描）</h1>
-    <p>中文语音指南</p>
+    <h1>撮影本番（Main Scan）</h1>
+    <p>English Audio Guide</p>
   </div>
 </div>
 
@@ -46,7 +62,7 @@ audio{width:100%;margin-top:10px;}
   <div class="label">日本語（内容）</div>
   <div class="jp" id="jp"></div>
 
-  <div class="label">中文（脚本）</div>
+  <div class="label">English (Script)</div>
   <div class="en" id="en"></div>
 
   <div class="controls">
@@ -55,7 +71,7 @@ audio{width:100%;margin-top:10px;}
     <button id="replay">↻ もう一度</button>
   </div>
 
-  <div class="status" id="status">待機中 / 准备就绪</div>
+  <div class="status" id="status">待機中 / Ready</div>
   <audio id="player" controls></audio>
 
   <div class="hint">
@@ -65,13 +81,13 @@ audio{width:100%;margin-top:10px;}
 
 <script>
 const STEPS = [
- {preview:"まもなく造影剤を注射します…", jp:"まもなく造影剤を注射します。", en:"我们即将注射造影剂。"},
- {preview:"気分が悪くなったら…", jp:"気分が悪くなったら、すぐに教えてください。", en:"如果感到不适，请立刻告诉我们。"},
- {preview:"今から注入を開始します…", jp:"今から注入を開始します。痛みはありませんか？気分はいかがですか？", en:"现在开始注射。有没有疼痛？感觉如何？"},
- {preview:"だんだん温かく感じます…", jp:"だんだん体が温かく感じてきます。", en:"您会逐渐感到身体发热。"},
- {preview:"息止めの合図の後…", jp:"息止めの合図が聞こえたら、すぐに撮影が始まります。", en:"听到屏气的指示后，扫描将立即开始。"},
- {preview:"約1分後に再度撮影…", jp:"約1分後に、もう一度撮影します。気分はいかがですか？", en:"大约一分钟后，我们会再次进行扫描。感觉如何？"},
- {preview:"温かい感じは数分で…", jp:"温かい感じは数分でおさまります。", en:"这种温热感会在几分钟内消失。"}
+ {preview:"まもなく造影剤を注射します…", jp:"まもなく造影剤を注射します。", en:"We're going to inject the contrast dye soon."},
+ {preview:"気分が悪くなったら…", jp:"気分が悪くなったら、すぐに教えてください。", en:"If you feel sick, please let us know right away."},
+ {preview:"今から注入を開始します…", jp:"今から注入を開始します。痛みはありませんか？気分はいかがですか？", en:"Starting the injection now. Did you feel any pain? How are you feeling?"},
+ {preview:"だんだん温かく感じます…", jp:"だんだん体が温かく感じてきます。", en:"You'll start to feel warm gradually."},
+ {preview:"息止めの合図の後…", jp:"息止めの合図が聞こえたら、すぐに撮影が始まります。", en:"After you hear the instruction to hold your breath, the scan will start right away."},
+ {preview:"約1分後に再度撮影…", jp:"約1分後に、もう一度撮影します。気分はいかがですか？", en:"In about one minute, we're going to take another scan. How are you feeling?"},
+ {preview:"温かい感じは数分で…", jp:"温かい感じは数分でおさまります。", en:"The warm sensation will go away in a few minutes."}
 ];
 
 const sel=document.getElementById('sel'),
@@ -94,7 +110,7 @@ function load(i){
  jp.textContent=STEPS[idx].jp;
  en.textContent=STEPS[idx].en;
  player.src=`audio/step_${String(idx+1).padStart(2,'0')}.m4a`;
- status.textContent="待機中 / 准备就绪";
+ status.textContent="待機中 / Ready";
 }
 sel.onchange=()=>load(parseInt(sel.value));
 document.getElementById('prev').onclick=()=>load(idx-1);
@@ -102,10 +118,53 @@ document.getElementById('next').onclick=()=>load(idx+1);
 document.getElementById('play').onclick=()=>player.play();
 document.getElementById('pause').onclick=()=>player.pause();
 document.getElementById('replay').onclick=()=>{player.currentTime=0;player.play();}
-player.onplay=()=>status.textContent="再生中 / 播放中";
-player.onpause=()=>status.textContent="一時停止 / 已暂停";
-player.onended=()=>status.textContent="待機中 / 准备就绪";
+player.onplay=()=>status.textContent="再生中 / Playing";
+player.onpause=()=>status.textContent="一時停止 / Paused";
+player.onended=()=>status.textContent="待機中 / Ready";
 load(0);
+
+document.addEventListener('DOMContentLoaded',()=>{
+ if(document.body.dataset.page!=='main-scan')return;
+
+ const EMG=[
+  {jp:'聞こえますか？意識ははっきりしていますか？',en:'Can you hear me? Are you okay?',a:'audio/emergency_01.m4a'},
+  {jp:'息苦しさはありますか？',en:'Are you having difficulty breathing?',a:'audio/emergency_02.m4a'},
+  {jp:'どこか痒みはありますか？',en:'Do you feel itchy anywhere?',a:'audio/emergency_03.m4a'},
+  {jp:'めまいやふらつきはありますか？',en:'Do you feel dizzy or lightheaded?',a:'audio/emergency_04.m4a'},
+  {jp:'吐き気や、吐きそうな感じはありますか？',en:'Do you have nausea or feel like vomiting?',a:'audio/emergency_05.m4a'},
+  {jp:'喉が締め付けられる感じ、または詰まる感じはありますか？',en:'Does your throat feel tight?',a:'audio/emergency_06.m4a'}
+ ];
+
+ const open=document.getElementById('emgOpen');
+ const back=document.getElementById('emgBackdrop');
+ const sheet=document.getElementById('emgSheet');
+ const list=document.getElementById('emgList');
+ const player=document.getElementById('emgPlayer');
+ const close=document.getElementById('emgClose');
+
+ EMG.forEach((s,i)=>{
+  const d=document.createElement('div');d.className='emg-item';
+  d.innerHTML=`<div class="emg-jp">${i+1}. ${s.jp}</div>
+               <div class="emg-en">${s.en}</div>`;
+  d.onclick=()=>{player.src=s.a;player.play();}
+  list.appendChild(d);
+ });
+
+ open.onclick=()=>{back.style.display='block';sheet.style.display='block'};
+ back.onclick=close.onclick=()=>{back.style.display='none';sheet.style.display='none'};
+});
+
 </script>
+
+<button class="fab-emg" id="emgOpen">⚠ 急変時確認</button>
+<div class="emg-backdrop" id="emgBackdrop"></div>
+<div class="emg-sheet" id="emgSheet">
+  <div class="emg-panel">
+    <div id="emgList"></div>
+    <audio id="emgPlayer" controls style="width:100%"></audio>
+    <button id="emgClose">閉じる</button>
+  </div>
+</div>
+
 </body>
 </html>
